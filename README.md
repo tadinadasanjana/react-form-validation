@@ -124,3 +124,13 @@ The form is fully responsive with:
 ## License
 
 MIT
+## 🎥 Demo Video
+
+This video demonstrates:
+- Form validation
+- Error handling
+- Password show/hide
+- Submission & navigation
+
+🔗 Demo link: https://drive.google.com/file/d/1h8G_FRe99ysE5HuBshqM7QxiZJa7eU89/view?t=5
+
