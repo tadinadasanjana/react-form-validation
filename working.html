@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>React Form Validation</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .form-container, .details-container {
+            width: 100%;
+            max-width: 800px;
+            padding: 20px;
+        }
+        
+        .form-wrapper, .details-wrapper {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2rem;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .form-row .form-group {
+            flex: 1;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .input-error {
+            border-color: #e74c3c !important;
+        }
+        
+        .error-message {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-top: 5px;
+            display: block;
+        }
+        
+        .password-input-wrapper {
+            position: relative;
+        }
+        
+        .toggle-password {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+        }
+        
+        .submit-button, .back-button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .submit-button:hover, .back-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .detail-item {
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .detail-label {
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 5px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .detail-value {
+            color: #333;
+            font-size: 16px;
+            word-break: break-word;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        const validateEmail = (email) => {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        };
+
+        const validatePassword = (password) => {
+            return password.length >= 8;
+        };
+
+        const validatePhone = (phone) => {
+            const phoneRegex = /^\d{10}$/;
+            return phoneRegex.test(phone.replace(/\D/g, ''));
+        };
+
+        const validatePAN = (pan) => {
+            const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+            return panRegex.test(pan);
+        };
+
+        const validateAadhaar = (aadhaar) => {
+            const aadhaarRegex = /^\d{12}$/;
+            return aadhaarRegex.test(aadhaar);
+        };
+
+        const validateForm = (formData) => {
+            const errors = {};
+
+            if (!formData.firstName.trim()) {
+                errors.firstName = 'First Name is required';
+            }
+
+            if (!formData.lastName.trim()) {
+                errors.lastName = 'Last Name is required';
+            }
+
+            if (!formData.username.trim()) {
+                errors.username = 'Username is required';
+            }
+
+            if (!formData.email.trim()) {
+                errors.email = 'Email is required';
+            } else if (!validateEmail(formData.email)) {
+                errors.email = 'Invalid email format';
+            }
+
+            if (!formData.password.trim()) {
+                errors.password = 'Password is required';
+            } else if (!validatePassword(formData.password)) {
+                errors.password = 'Password must be at least 8 characters';
+            }
+
+            if (!formData.countryCode.trim()) {
+                errors.countryCode = 'Country Code is required';
+            }
+
+            if (!formData.phone.trim()) {
+                errors.phone = 'Phone Number is required';
+            } else if (!validatePhone(formData.phone)) {
+                errors.phone = 'Phone Number must be 10 digits';
+            }
+
+            if (!formData.country) {
+                errors.country = 'Country is required';
+            }
+
+            if (!formData.city.trim()) {
+                errors.city = 'City is required';
+            }
+
+            if (!formData.pan.trim()) {
+                errors.pan = 'PAN is required';
+            } else if (!validatePAN(formData.pan)) {
+                errors.pan = 'Invalid PAN format (e.g., ABCDE1234F)';
+            }
+
+            if (!formData.aadhaar.trim()) {
+                errors.aadhaar = 'Aadhaar is required';
+            } else if (!validateAadhaar(formData.aadhaar)) {
+                errors.aadhaar = 'Aadhaar must be 12 digits';
+            }
+
+            return errors;
+        };
+
+        const App = () => {
+            const [showPassword, setShowPassword] = useState(false);
+            const [submitted, setSubmitted] = useState(false);
+            const [showDetails, setShowDetails] = useState(false);
+            const [formData, setFormData] = useState({
+                firstName: '',
+                lastName: '',
+                username: '',
+                email: '',
+                password: '',
+                countryCode: '+91',
+                phone: '',
+                country: '',
+                city: '',
+                pan: '',
+                aadhaar: ''
+            });
+            const [errors, setErrors] = useState({});
+
+            const handleChange = (e) => {
+                const { name, value } = e.target;
+                const newFormData = {
+                    ...formData,
+                    [name]: value
+                };
+                setFormData(newFormData);
+                
+                // Only validate if form was submitted before
+                if (submitted) {
+                    const newErrors = validateForm(newFormData);
+                    setErrors(newErrors);
+                }
+            };
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                setSubmitted(true);
+                const newErrors = validateForm(formData);
+                
+                if (Object.keys(newErrors).length === 0) {
+                    setShowDetails(true);
+                } else {
+                    setErrors(newErrors);
+                }
+            };
+
+            const handleBack = () => {
+                setShowDetails(false);
+                setSubmitted(false);
+                setErrors({});
+                setFormData({
+                    firstName: '',
+                    lastName: '',
+                    username: '',
+                    email: '',
+                    password: '',
+                    countryCode: '+91',
+                    phone: '',
+                    country: '',
+                    city: '',
+                    pan: '',
+                    aadhaar: ''
+                });
+            };
+
+            if (showDetails) {
+                return (
+                    <div className="details-container">
+                        <div className="details-wrapper">
+                            <div className="details-header">
+                                <h1>Submitted Information</h1>
+                                <p>Here are the details you submitted:</p>
+                            </div>
+                            
+                            <div className="details-grid">
+                                <div className="detail-item">
+                                    <div className="detail-label">Full Name</div>
+                                    <div className="detail-value">{formData.firstName} {formData.lastName}</div>
+                                </div>
+                                
+                                <div className="detail-item">
+                                    <div className="detail-label">Username</div>
+                                    <div className="detail-value">{formData.username}</div>
+                                </div>
+                                
+                                <div className="detail-item">
+                                    <div className="detail-label">Email</div>
+                                    <div className="detail-value">{formData.email}</div>
+                                </div>
+                                
+                                <div className="detail-item">
+                                    <div className="detail-label">Phone</div>
+                                    <div className="detail-value">{formData.countryCode} {formData.phone}</div>
+                                </div>
+                                
+                                <div className="detail-item">
+                                    <div className="detail-label">Location</div>
+                                    <div className="detail-value">{formData.city}, {formData.country}</div>
+                                </div>
+                                
+                                <div className="detail-item">
+                                    <div className="detail-label">PAN Card</div>
+                                    <div className="detail-value">{formData.pan}</div>
+                                </div>
+                                
+                                <div className="detail-item">
+                                    <div className="detail-label">Aadhaar Number</div>
+                                    <div className="detail-value">{formData.aadhaar}</div>
+                                </div>
+                            </div>
+                            
+                            <button onClick={handleBack} className="back-button">
+                                Back to Form
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="form-container">
+                    <div className="form-wrapper">
+                        <h1>Registration Form</h1>
+                        <form onSubmit={handleSubmit} className="form">
+                            
+                            {/* Name Fields */}
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label htmlFor="firstName">First Name *</label>
+                                    <input
+                                        type="text"
+                                        id="firstName"
+                                        name="firstName"
+                                        value={formData.firstName}
+                                        onChange={handleChange}
+                                        className={errors.firstName ? 'input-error' : ''}
+                                        placeholder="Enter first name"
+                                    />
+                                    {errors.firstName && <span className="error-message">{errors.firstName}</span>}
+                                </div>
+                                <div className="form-group">
+                                    <label htmlFor="lastName">Last Name *</label>
+                                    <input
+                                        type="text"
+                                        id="lastName"
+                                        name="lastName"
+                                        value={formData.lastName}
+                                        onChange={handleChange}
+                                        className={errors.lastName ? 'input-error' : ''}
+                                        placeholder="Enter last name"
+                                    />
+                                    {errors.lastName && <span className="error-message">{errors.lastName}</span>}
+                                </div>
+                            </div>
+
+                            {/* Username Field */}
+                            <div className="form-group">
+                                <label htmlFor="username">Username *</label>
+                                <input
+                                    type="text"
+                                    id="username"
+                                    name="username"
+                                    value={formData.username}
+                                    onChange={handleChange}
+                                    className={errors.username ? 'input-error' : ''}
+                                    placeholder="Enter username"
+                                />
+                                {errors.username && <span className="error-message">{errors.username}</span>}
+                            </div>
+
+                            {/* Email Field */}
+                            <div className="form-group">
+                                <label htmlFor="email">Email *</label>
+                                <input
+                                    type="email"
+                                    id="email"
+                                    name="email"
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    className={errors.email ? 'input-error' : ''}
+                                    placeholder="Enter email"
+                                />
+                                {errors.email && <span className="error-message">{errors.email}</span>}
+                            </div>
+
+                            {/* Password Field */}
+                            <div className="form-group">
+                                <label htmlFor="password">Password *</label>
+                                <div className="password-input-wrapper">
+                                    <input
+                                        type={showPassword ? 'text' : 'password'}
+                                        id="password"
+                                        name="password"
+                                        value={formData.password}
+                                        onChange={handleChange}
+                                        className={errors.password ? 'input-error' : ''}
+                                        placeholder="Enter password (min 8 characters)"
+                                    />
+                                    <button
+                                        type="button"
+                                        className="toggle-password"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        title={showPassword ? 'Hide password' : 'Show password'}
+                                    >
+                                        {showPassword ? '👁️‍🗨️' : '👁️'}
+                                    </button>
+                                </div>
+                                {errors.password && <span className="error-message">{errors.password}</span>}
+                            </div>
+
+                            {/* Phone and Country Code */}
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label htmlFor="countryCode">Country Code *</label>
+                                    <input
+                                        type="text"
+                                        id="countryCode"
+                                        name="countryCode"
+                                        value={formData.countryCode}
+                                        onChange={handleChange}
+                                        className={errors.countryCode ? 'input-error' : ''}
+                                        placeholder="+91"
+                                        maxLength="5"
+                                    />
+                                    {errors.countryCode && <span className="error-message">{errors.countryCode}</span>}
+                                </div>
+                                <div className="form-group">
+                                    <label htmlFor="phone">Phone No. *</label>
+                                    <input
+                                        type="tel"
+                                        id="phone"
+                                        name="phone"
+                                        value={formData.phone}
+                                        onChange={handleChange}
+                                        className={errors.phone ? 'input-error' : ''}
+                                        placeholder="10 digit number"
+                                        maxLength="10"
+                                    />
+                                    {errors.phone && <span className="error-message">{errors.phone}</span>}
+                                </div>
+                            </div>
+
+                            {/* Country and City */}
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label htmlFor="country">Country *</label>
+                                    <select
+                                        id="country"
+                                        name="country"
+                                        value={formData.country}
+                                        onChange={handleChange}
+                                        className={errors.country ? 'input-error' : ''}
+                                    >
+                                        <option value="">Select Country</option>
+                                        <option value="India">India</option>
+                                        <option value="USA">USA</option>
+                                        <option value="UK">UK</option>
+                                        <option value="Canada">Canada</option>
+                                        <option value="Australia">Australia</option>
+                                    </select>
+                                    {errors.country && <span className="error-message">{errors.country}</span>}
+                                </div>
+                                <div className="form-group">
+                                    <label htmlFor="city">City *</label>
+                                    <input
+                                        type="text"
+                                        id="city"
+                                        name="city"
+                                        value={formData.city}
+                                        onChange={handleChange}
+                                        className={errors.city ? 'input-error' : ''}
+                                        placeholder="Enter city"
+                                    />
+                                    {errors.city && <span className="error-message">{errors.city}</span>}
+                                </div>
+                            </div>
+
+                            {/* PAN and Aadhaar */}
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label htmlFor="pan">PAN *</label>
+                                    <input
+                                        type="text"
+                                        id="pan"
+                                        name="pan"
+                                        value={formData.pan}
+                                        onChange={(e) => {
+                                            const newFormData = {
+                                                ...formData,
+                                                pan: e.target.value.toUpperCase()
+                                            };
+                                            setFormData(newFormData);
+                                            
+                                            // Only validate if form was submitted before
+                                            if (submitted) {
+                                                const newErrors = validateForm(newFormData);
+                                                setErrors(newErrors);
+                                            }
+                                        }}
+                                        className={errors.pan ? 'input-error' : ''}
+                                        placeholder="e.g., ABCDE1234F"
+                                        maxLength="10"
+                                    />
+                                    {errors.pan && <span className="error-message">{errors.pan}</span>}
+                                </div>
+                                <div className="form-group">
+                                    <label htmlFor="aadhaar">Aadhaar *</label>
+                                    <input
+                                        type="text"
+                                        id="aadhaar"
+                                        name="aadhaar"
+                                        value={formData.aadhaar}
+                                        onChange={handleChange}
+                                        className={errors.aadhaar ? 'input-error' : ''}
+                                        placeholder="12 digit number"
+                                        maxLength="12"
+                                    />
+                                    {errors.aadhaar && <span className="error-message">{errors.aadhaar}</span>}
+                                </div>
+                            </div>
+
+                            {/* Submit Button */}
+                            <button
+                                type="submit"
+                                className="submit-button"
+                            >
+                                Submit
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            );
+        };
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
